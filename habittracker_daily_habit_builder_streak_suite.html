@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HabitTracker - Daily Habit Builder & Streak Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(16, 185, 129, 0.3);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(16, 185, 129, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-brand-500 selection:text-white">
+
+    <header class="w-full border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-brand-600 to-emerald-400 p-2.5 rounded-xl shadow-lg shadow-brand-500/20">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">HabitTracker</h1>
+                    <p class="text-[11px] text-slate-400">Daily Habit Builder & Streak Suite</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="exportData()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition border border-slate-700 flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <span class="hidden sm:inline">Export JSON</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full space-y-8">
+        
+        <!-- Stats Summary Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-slate-900/80 border border-slate-800/80 rounded-3xl p-6 backdrop-blur shadow-xl flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Habits</p>
+                    <h3 id="stat-total" class="text-2xl font-bold text-white mt-1">0</h3>
+                </div>
+                <div class="p-3 bg-brand-500/10 border border-brand-500/30 rounded-2xl text-brand-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                </div>
+            </div>
+            <div class="bg-slate-900/80 border border-slate-800/80 rounded-3xl p-6 backdrop-blur shadow-xl flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Completed Today</p>
+                    <h3 id="stat-completed" class="text-2xl font-bold text-emerald-400 mt-1">0</h3>
+                </div>
+                <div class="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+            </div>
+            <div class="bg-slate-900/80 border border-slate-800/80 rounded-3xl p-6 backdrop-blur shadow-xl flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Best Streak</p>
+                    <h3 id="stat-streak" class="text-2xl font-bold text-amber-400 mt-1">0 Days</h3>
+                </div>
+                <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-amber-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            
+            <!-- Left Column: Add Habit Form -->
+            <div class="bg-slate-900/80 border border-slate-800/80 rounded-3xl p-6 backdrop-blur shadow-xl space-y-6">
+                <div class="border-b border-slate-800/80 pb-4">
+                    <h3 class="text-base font-bold text-white">Create New Habit</h3>
+                    <p class="text-xs text-slate-400">Build daily consistency and momentum</p>
+                </div>
+
+                <form onsubmit="handleFormSubmit(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5">Habit Title</label>
+                        <input type="text" id="habit-title" required placeholder="e.g. Read 20 pages, Morning Run..." class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5">Category</label>
+                        <select id="habit-category" class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500 transition">
+                            <option value="Health & Fitness">💪 Health & Fitness</option>
+                            <option value="Learning & Mind">🧠 Learning & Mind</option>
+                            <option value="Productivity">⚡ Productivity</option>
+                            <option value="Mindfulness">🧘 Mindfulness</option>
+                            <option value="Other">🌟 Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5">Description / Goal</label>
+                        <textarea id="habit-desc" rows="2" placeholder="e.g. Focus on non-fiction books..." class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500 transition resize-none"></textarea>
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold transition shadow-lg shadow-brand-600/20 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Add Habit
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Column: Habits List -->
+            <div class="lg:col-span-2 bg-slate-900/80 border border-slate-800/80 rounded-3xl p-6 backdrop-blur shadow-xl flex flex-col h-[700px]">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800/80">
+                    <div>
+                        <h3 class="text-base font-bold text-white">Daily Habit Tracker</h3>
+                        <p class="text-xs text-slate-400">Check off today's habits to build your streak</p>
+                    </div>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <input type="text" id="search-input" oninput="filterHabits()" placeholder="Search habits..." class="bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500 w-full sm:w-48">
+                    </div>
+                </div>
+
+                <div id="habits-container" class="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-1">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-brand-600 text-white px-6 py-3 rounded-2xl shadow-2xl text-xs font-semibold border border-emerald-400/30 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        Notification message
+    </div>
+
+    <script>
+        let habits = [];
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        function initApp() {
+            const saved = localStorage.getItem('habittracker_habits');
+            if (saved) {
+                try {
+                    habits = JSON.parse(saved);
+                } catch (e) {
+                    habits = [];
+                }
+            } else {
+                habits = [
+                    {
+                        id: 'h1',
+                        title: 'Morning 5K Jog',
+                        category: 'Health & Fitness',
+                        desc: 'Maintain cardiovascular endurance.',
+                        streak: 5,
+                        history: { [todayStr]: true }
+                    },
+                    {
+                        id: 'h2',
+                        title: 'Read 30 Pages',
+                        category: 'Learning & Mind',
+                        desc: 'Read technical or philosophy books.',
+                        streak: 12,
+                        history: { [todayStr]: false }
+                    },
+                    {
+                        id: 'h3',
+                        title: 'Code for 1 Hour',
+                        category: 'Productivity',
+                        desc: 'Contribute to GitHub open source projects.',
+                        streak: 8,
+                        history: { [todayStr]: true }
+                    }
+                ];
+                saveHabits();
+            }
+            updateDashboard();
+        }
+
+        function saveHabits() {
+            localStorage.setItem('habittracker_habits', JSON.stringify(habits));
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const title = document.getElementById('habit-title').value.trim();
+            const category = document.getElementById('habit-category').value;
+            const desc = document.getElementById('habit-desc').value.trim();
+
+            if (!title) return;
+
+            const newHabit = {
+                id: 'habit_' + Date.now(),
+                title,
+                category,
+                desc,
+                streak: 0,
+                history: {}
+            };
+
+            habits.unshift(newHabit);
+            saveHabits();
+            updateDashboard();
+
+            document.getElementById('habit-title').value = '';
+            document.getElementById('habit-desc').value = '';
+            showToast('New habit created successfully!');
+        }
+
+        function toggleToday(id) {
+            const habit = habits.find(h => h.id === id);
+            if (!habit) return;
+
+            const isCompleted = !!habit.history[todayStr];
+            habit.history[todayStr] = !isCompleted;
+
+            if (!isCompleted) {
+                habit.streak += 1;
+                showToast(`Completed "${habit.title}"! 🔥 Streak: ${habit.streak}`);
+            } else {
+                habit.streak = Math.max(0, habit.streak - 1);
+                showToast(`Unchecked "${habit.title}".`);
+            }
+
+            saveHabits();
+            updateDashboard();
+        }
+
+        function deleteHabit(id) {
+            habits = habits.filter(h => h.id !== id);
+            saveHabits();
+            updateDashboard();
+            showToast('Habit deleted.');
+        }
+
+        function updateDashboard() {
+            const total = habits.length;
+            const completedToday = habits.filter(h => h.history[todayStr]).length;
+            const bestStreak = habits.reduce((max, h) => Math.max(max, h.streak), 0);
+
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-completed').textContent = completedToday;
+            document.getElementById('stat-streak').textContent = `${bestStreak} Days`;
+
+            filterHabits();
+        }
+
+        function filterHabits() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = habits.filter(h => h.title.toLowerCase().includes(query) || h.category.toLowerCase().includes(query));
+            renderHabits(filtered);
+        }
+
+        function renderHabits(list) {
+            const container = document.getElementById('habits-container');
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 text-slate-500 text-xs">
+                        No habits found matching your query. Create one to begin!
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = list.map(h => {
+                const isChecked = !!h.history[todayStr];
+                return `
+                    <div class="p-4 bg-slate-950/60 hover:bg-slate-950 border border-slate-800/80 rounded-2xl transition flex items-center justify-between group">
+                        <div class="flex items-center gap-4 flex-1">
+                            <button onclick="toggleToday('${h.id}')" class="w-7 h-7 rounded-xl border flex items-center justify-center transition ${isChecked ? 'bg-brand-600 border-brand-500 text-white shadow-md shadow-brand-600/30' : 'bg-slate-900 border-slate-800 hover:border-brand-500 text-transparent'}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </button>
+                            <div class="space-y-0.5">
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-xs font-bold text-slate-200 ${isChecked ? 'line-through text-slate-500' : ''}">${h.title}</h4>
+                                    <span class="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded-md text-[10px] text-slate-400">${h.category}</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 line-clamp-1">${h.desc || 'Daily consistency goal'}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 shrink-0">
+                            <div class="text-right">
+                                <span class="text-xs font-bold text-amber-400 flex items-center gap-1">🔥 ${h.streak} streak</span>
+                            </div>
+                            <button onclick="deleteHabit('${h.id}')" class="p-2 text-slate-500 hover:text-rose-400 transition rounded-xl hover:bg-slate-900" title="Delete habit">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(habits, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `habittracker_export_${todayStr}.json`);
+            document.body.appendChild(dlAnchorElem);
+            dlAnchorElem.click();
+            dlAnchorElem.remove();
+            showToast('Habits data exported successfully!');
+        }
+
+        window.onload = () => {
+            initApp();
+        };
+    </script>
+</body>
+</html>
